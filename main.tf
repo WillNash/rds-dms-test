@@ -31,3 +31,14 @@ resource "aws_instance" "web" {
   }
 }
 
+resource "aws_db_instance" "default" {
+  allocated_storage    = 10
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t3.micro"
+  name                 = "dms_target"
+  username             = "admin"
+  password             = "password"
+  parameter_group_name = aws_db_parameter_group.dms_test_terraform.name
+  skip_final_snapshot  = true
+}
