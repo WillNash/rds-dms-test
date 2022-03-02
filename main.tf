@@ -21,7 +21,7 @@ resource "aws_db_parameter_group" "dms_test_terraform" {
   }
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance" "db_management" {
   ami                    = "ami-0f39d06d145e9bb63"
   instance_type          = "t2.micro"
  # user_data              = file("init-script.sh")
@@ -31,27 +31,56 @@ resource "aws_instance" "web" {
   }
 }
 
+resource "aws_security_group" "dms_database_sg" {
+  name = "dms_rds_talk"
+  description = "Allow target and source to communicate with replication instance and inbound traffic from Will."
+  
+  ingress {
+    description = "Connection from Will."
+    cidr_blocks = ["150.107.172.210/32"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"     
+  }
+  
+  egress {
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+    protocol   = "-1"
+  } 
+}
 
 resource "aws_db_instance" "dms_mysql_target" {
-  allocated_storage    = 10
-  engine               = "mysql"
-  engine_version       = "5.7"
-  instance_class       = "db.t3.micro"
-  name                 = "dms_target"
-  username             = "admin"
-  password             = "password"
-  parameter_group_name = aws_db_parameter_group.dms_test_terraform.name
-  skip_final_snapshot  = true
+  allocated_storage      = 10
+  engine                 = "mysql"
+  identifier             = "dms-target"
+  publicly_accessible    = true
+  engine_version         = "5.7"
+  instance_class         = "db.t3.micro"
+  name                = "dms_target"
+  username               = "admin"
+  password               = "password"
+  parameter_group_name   = aws_db_parameter_group.dms_test_terraform.name
+  skip_final_snapshot    = true
+  vpc_security_group_ids = [aws_security_group.dms_database_sg.id]
 }
 
 resource "aws_db_instance" "dms_mysql_source" {
-  allocated_storage    = 10
-  engine               = "mysql"
-  engine_version       = "5.7"
-  instance_class       = "db.t3.micro"
-  name                 = "dms_source"
-  username             = "admin"
-  password             = "password"
-  parameter_group_name = aws_db_parameter_group.dms_test_terraform.name
-  skip_final_snapshot  = true
+  allocated_storage      = 10
+  engine                 = "mysql"
+  identifier             = "dms-source"
+  engine_version         = "5.7"
+  instance_class         = "db.t3.micro"
+  publicly_accessible    = true
+  name                = "dms_source"
+  username               = "admin"
+  password               = "password"
+  parameter_group_name   = aws_db_parameter_group.dms_test_terraform.name
+  skip_final_snapshot    = true
+  vpc_security_group_ids = [aws_security_group.dms_database_sg.id]
 }
+
+
+  
+
