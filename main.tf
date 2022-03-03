@@ -24,11 +24,17 @@ resource "aws_db_parameter_group" "dms_test_terraform" {
 resource "aws_instance" "db_management" {
   ami                    = "ami-0f39d06d145e9bb63"
   instance_type          = "t2.micro"
- # user_data              = file("init-script.sh")
-
+ # user_data             = file("init-script.sh")
+  key_name               = aws_key_pair.dms_management_key.key_name
+  vpc_security_group_ids = [aws_security_group.dms_database_sg.id]
   tags = {
     Name = random_pet.name.id
   }
+}
+
+resource "aws_key_pair" "dms_management_key" {
+  key_name   = "dms_management_key"
+  public_key = file("id_rsa.pub")
 }
 
 resource "aws_security_group" "dms_database_sg" {
@@ -50,7 +56,7 @@ resource "aws_security_group" "dms_database_sg" {
     protocol   = "-1"
   } 
 }
-
+/*
 resource "aws_db_instance" "dms_mysql_target" {
   allocated_storage      = 10
   engine                 = "mysql"
@@ -81,6 +87,6 @@ resource "aws_db_instance" "dms_mysql_source" {
   vpc_security_group_ids = [aws_security_group.dms_database_sg.id]
 }
 
-
+*/
   
 
